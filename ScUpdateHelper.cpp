@@ -29,7 +29,7 @@ QString getSCPathString()
                 if (bin64Index != -1) {
                     resultPath = qValueName.left(bin64Index); // Get the path before \bin64 (this will include an environment folder!) 
                     resultPath = resultPath.left(resultPath.lastIndexOf("\\")); //so we clip that environment off to get the actual SC folder.
-                    break; // Pack it up, bois. We've got a winner.
+                    break; // Pack it up, we've got a winner.
                 }
             }
             valueNameSize = 256;
