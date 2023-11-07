@@ -11,7 +11,6 @@ Features
 
     Confirmation Dialogs: The program includes confirmation dialogs to ensure that users want to proceed with potentially irreversible operations.
 
-    Registry Query (Optional): For users who have their Star Citizen installation path stored in the Windows registry, the program can retrieve this information to automate the folder deletion process.
 
     Flexible Search: The program is designed to adapt to different installation locations, including secondary drives.
 
