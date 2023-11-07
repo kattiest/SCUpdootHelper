@@ -101,8 +101,14 @@ void searchAndDeleteUserFolder()
 }
 	void pasteActionMapsFile()
 {
-    QString sourceFilePath = qgetenv("USERPROFILE") + "/actionmaps.xml";
-    QString destinationFilePath = qgetenv("USERPROFILE") + "/RSI/StarCitizen/LIVE/USER/Client/0/Profiles/default/actionmaps.xml";
+ QDirIterator it(baseDir.path(), QDir::Dirs | QDir::NoDotAndDotDot, QDirIterator::NoIteratorFlags);
+    while (it.hasNext()) {
+        it.next();
+        QString subDirPath = it.filePath();
+
+        QString userFolderPath = subDirPath + QDir::separator() + "/actionmaps.xml"; 
+        QDir userFolder(userFolderPath);
+    QString userFolderPath = subDirPath + QDir::separator() + "LIVE/USER/Client/0/Profiles/default/actionmaps.xml";  
 
     if (QFile::copy(sourceFilePath, destinationFilePath)) {
         QMessageBox::information(nullptr, "Paste Successful", "Keybinds pasted back to its original location.");
