@@ -44,9 +44,14 @@ QString getSCPathString()
 }
 void copyActionMapsFile()
 {
-    QString sourceFilePath = qgetenv("USERPROFILE") + "/RSI/StarCitizen/LIVE/USER/Client/0/Profiles/default/actionmaps.xml";
-	
-    QString destinationFilePath = qgetenv("USERPROFILE") + "/actionmaps.xml";
+	 QDirIterator it(baseDir.path(), QDir::Dirs | QDir::NoDotAndDotDot, QDirIterator::NoIteratorFlags);
+    while (it.hasNext()) {
+        it.next();
+        QString subDirPath = it.filePath();
+
+        QString userFolderPath = subDirPath + QDir::separator() + "USER/Client/0/Profiles/default/actionmaps.xml"; 
+        QDir userFolder(userFolderPath);
+    QString userFolderPath = subDirPath + QDir::separator() + "/actionmaps.xml";
 
     if (QFile::copy(sourceFilePath, destinationFilePath)) {
         QMessageBox::information(nullptr, "Copy Successful", "actionmaps.xml copied to the root directory.");
