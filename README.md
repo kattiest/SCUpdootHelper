@@ -46,6 +46,7 @@ How to Compile and Run
 Contributions
 
 Contributions are welcome! If you have suggestions, improvements, or discover any issues, please feel free to open an issue or submit a pull request.
-License
-Thank you Alpine
+
+Thank you Alpine.
+
 This program is open-source.
