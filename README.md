@@ -1,7 +1,7 @@
 # SCUpdootHelper
 Overview
 
-The Star Citizen Folder Cleaner is a C++ program designed to assist users in managing their Star Citizen game installation by providing the ability to delete specific folders associated with the game. The program offers two main functionalities:
+The Star Citizen Update Helper is a C++ program designed to assist users in managing their Star Citizen game installation by providing the ability to delete specific folders associated with the game. The program offers two main functionalities:
 
     Delete Star Citizen Folders: This option allows users to delete all folders within the %localappdata%\Star Citizen directory.
 
