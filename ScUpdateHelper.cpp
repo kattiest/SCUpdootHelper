@@ -6,7 +6,7 @@
 #include <Windows.h>
 #include <QDir>
 #include <QDirIterator>
-
+char SCPATH[];
 QString getSCPathString()
 {
     HKEY hKey;
