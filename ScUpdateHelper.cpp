@@ -89,8 +89,12 @@ int main(int argc, char** argv)
     QVBoxLayout layout(&window);
     QPushButton deleteStarCitizenButton("Delete Star Citizen Folders");
     QPushButton deleteUserButton("Delete USER Folders");
+    QPushButton copyButton("Copy actionmaps.xml to Root Directory");
+    QPushButton pasteButton("Paste actionmaps.xml back");
     QPushButton cancelButton("Close");
     layout.addWidget(&deleteStarCitizenButton);
+    layout.addWidget(&copyButton);
+    layout.addWidget(&pasteButton);
     layout.addWidget(&deleteUserButton);
     layout.addWidget(&cancelButton);
 
