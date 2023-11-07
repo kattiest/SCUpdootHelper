@@ -42,6 +42,30 @@ QString getSCPathString()
 
     return resultPath; // return whatever string we found (could be empty too, handled later)
 }
+void copyActionMapsFile()
+{
+    QString sourceFilePath = qgetenv("USERPROFILE") + "/RSI/StarCitizen/LIVE/USER/Client/0/Profiles/default/actionmaps.xml";
+	
+    QString destinationFilePath = qgetenv("USERPROFILE") + "/actionmaps.xml";
+
+    if (QFile::copy(sourceFilePath, destinationFilePath)) {
+        QMessageBox::information(nullptr, "Copy Successful", "actionmaps.xml copied to the root directory.");
+    } else {
+        QMessageBox::critical(nullptr, "Copy Failed", "Failed to copy actionmaps.xml.");
+    }
+}
+
+void pasteActionMapsFile()
+{
+    QString sourceFilePath = qgetenv("USERPROFILE") + "/actionmaps.xml";
+    QString destinationFilePath = qgetenv("USERPROFILE") + "/RSI/StarCitizen/LIVE/USER/Client/0/Profiles/default/actionmaps.xml";
+
+    if (QFile::copy(sourceFilePath, destinationFilePath)) {
+        QMessageBox::information(nullptr, "Paste Successful", "Keybinds pasted back to its original location.");
+    } else {
+        QMessageBox::critical(nullptr, "Paste Failed", "Do you happen to have any Elmers glue.");
+    }
+}
 
 void searchAndDeleteUserFolder()
 {
@@ -89,8 +113,8 @@ int main(int argc, char** argv)
     QVBoxLayout layout(&window);
     QPushButton deleteStarCitizenButton("Delete Star Citizen Folders");
     QPushButton deleteUserButton("Delete USER Folders");
-    QPushButton copyButton("Copy actionmaps.xml to Root Directory");
-    QPushButton pasteButton("Paste actionmaps.xml back");
+    QPushButton copyButton("Copy Keybinds to Root Directory");
+    QPushButton pasteButton("Paste Keybinds back");
     QPushButton cancelButton("Close");
     layout.addWidget(&deleteStarCitizenButton);
     layout.addWidget(&copyButton);
@@ -109,6 +133,9 @@ int main(int argc, char** argv)
             dir.removeRecursively();
         }
         });
+	QObject::connect(&copyButton, &QPushButton::clicked, copyActionMapsFile);
+	
+    QObject::connect(&pasteButton, &QPushButton::clicked, pasteActionMapsFile);
 
     QObject::connect(&deleteUserButton, &QPushButton::clicked, [&]() {
         QMessageBox::StandardButton reply;
