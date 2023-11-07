@@ -11,7 +11,6 @@ Features
 
     Confirmation Dialogs: The program includes confirmation dialogs to ensure that users want to proceed with potentially irreversible operations.
 
-
     Flexible Search: The program is designed to adapt to different installation locations, including secondary drives.
 
 How to Use
