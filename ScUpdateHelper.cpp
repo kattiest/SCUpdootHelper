@@ -119,8 +119,8 @@ int main(int argc, char** argv)
     QPushButton cancelButton("Close");
     layout.addWidget(&deleteStarCitizenButton);
     layout.addWidget(&copyButton);
-    layout.addWidget(&pasteButton);
     layout.addWidget(&deleteUserButton);
+    layout.addWidget(&pasteButton);
     layout.addWidget(&cancelButton);
 
 
