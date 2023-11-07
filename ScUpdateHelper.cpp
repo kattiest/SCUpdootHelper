@@ -54,9 +54,9 @@ void copyActionMapsFile()
     QString userFolderPath = subDirPath + QDir::separator() + "/actionmaps.xml";
 
     if (QFile::copy(sourceFilePath, destinationFilePath)) {
-        QMessageBox::information(nullptr, "Copy Successful", "actionmaps.xml copied to the root directory.");
+        QMessageBox::information(nullptr, "Copy Successful", "Keybinds copied to the root directory.");
     } else {
-        QMessageBox::critical(nullptr, "Copy Failed", "Failed to copy actionmaps.xml.");
+        QMessageBox::critical(nullptr, "Copy Failed", "Failed to copy Keybinds.");
     }
 }
 
