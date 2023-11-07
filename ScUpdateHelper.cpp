@@ -55,17 +55,7 @@ void copyActionMapsFile()
     }
 }
 
-void pasteActionMapsFile()
-{
-    QString sourceFilePath = qgetenv("USERPROFILE") + "/actionmaps.xml";
-    QString destinationFilePath = qgetenv("USERPROFILE") + "/RSI/StarCitizen/LIVE/USER/Client/0/Profiles/default/actionmaps.xml";
 
-    if (QFile::copy(sourceFilePath, destinationFilePath)) {
-        QMessageBox::information(nullptr, "Paste Successful", "Keybinds pasted back to its original location.");
-    } else {
-        QMessageBox::critical(nullptr, "Paste Failed", "Do you happen to have any Elmers glue.");
-    }
-}
 
 void searchAndDeleteUserFolder()
 {
@@ -84,6 +74,17 @@ void searchAndDeleteUserFolder()
         QMessageBox::warning(nullptr, "Warning", "The string was a lie, officer.");
         return;
     }
+	void pasteActionMapsFile()
+{
+    QString sourceFilePath = qgetenv("USERPROFILE") + "/actionmaps.xml";
+    QString destinationFilePath = qgetenv("USERPROFILE") + "/RSI/StarCitizen/LIVE/USER/Client/0/Profiles/default/actionmaps.xml";
+
+    if (QFile::copy(sourceFilePath, destinationFilePath)) {
+        QMessageBox::information(nullptr, "Paste Successful", "Keybinds pasted back to its original location.");
+    } else {
+        QMessageBox::critical(nullptr, "Paste Failed", "Do you happen to have any Elmers glue.");
+    }
+}
 
     // So we've verified the directory exists, now let's dig for the USER folders.
     QDirIterator it(baseDir.path(), QDir::Dirs | QDir::NoDotAndDotDot, QDirIterator::NoIteratorFlags);
