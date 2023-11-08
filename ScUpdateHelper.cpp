@@ -134,8 +134,7 @@ int main(int argc, char** argv)
     QVBoxLayout layout(&window);
     QPushButton deleteStarCitizenButton("Delete Star Citizen Folders");
     QPushButton deleteUserButton("Delete USER Folders");
-    //QPushButton copyButton("Copy Keybinds to Root Directory");
-    //QPushButton pasteButton("Paste Keybinds back");
+    
     QPushButton cancelButton("Close");
     //add a text label
     
@@ -145,10 +144,8 @@ int main(int argc, char** argv)
 
 
     layout.addWidget(&deleteStarCitizenButton);
-    //layout.addWidget(&copyButton);
     layout.addWidget(&deleteUserButton);
     layout.addWidget(&saveKeybinds);
-    //layout.addWidget(&pasteButton);
     layout.addWidget(&cancelButton);
     
     saveKeybinds.setCheckState(Qt::Checked);
