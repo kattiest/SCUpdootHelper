@@ -22,8 +22,10 @@ How to Use
     Delete User Folders:
         Click the "Delete USER Folders" button.
         Confirm the operation in the pop-up dialog.
+    
     Backup Keybinds, Settings
-        Keep the checkbox checked to preserve your settings including keybinds, and stick settings
+       Keep the checkbox checked to preserve your settings including keybinds, and stick settings
+       
     Close:
         Click the "Close" button or hit the "X" to exit the program.
 
@@ -44,8 +46,8 @@ How to Compile and Run
 
 Contributions
 
-Contributions are welcome! If you have suggestions, improvements, or discover any issues, please feel free to open an issue or submit a pull request.
+    Contributions are welcome! If you have suggestions, improvements, or discover any issues, please feel free to open an issue or submit a pull request.
 
-Thank you Alpine.
+    Thank you Alpine.
 
 This program is open-source.
