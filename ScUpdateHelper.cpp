@@ -6,115 +6,124 @@
 #include <Windows.h>
 #include <QDir>
 #include <QDirIterator>
-char SCPATH[];
-QString getSCPathString()
-{
-    HKEY hKey;
-    LPCWSTR subkey = L"SOFTWARE\\Classes\\Local Settings\\Software\\Microsoft\\Windows\\Shell\\MuiCache";
-    LONG openRes = RegOpenKeyEx(HKEY_CURRENT_USER, subkey, 0, KEY_READ, &hKey);
+#include <QSettings>
+#include <QCheckBox>
+#include <QFile>
+#include <QLabel>
 
+
+QDir SCDIR;
+
+void setSCDirectory()
+{
+    QSettings settings("HKEY_CURRENT_USER\\SOFTWARE\\Classes\\Local Settings\\Software\\Microsoft\\Windows\\Shell\\MuiCache",
+        QSettings::NativeFormat);
+
+    QStringList keys = settings.allKeys();
     QString resultPath;
 
-    if (openRes == ERROR_SUCCESS) {
-        DWORD index = 0;
-        WCHAR valueName[256];
-        DWORD valueNameSize = 256;
-        WCHAR data[1024];
-        DWORD dataSize = 1024;
+    for (const QString& key : keys) {
+        if (key.contains("starcitizen.exe", Qt::CaseInsensitive)) {
+            QDir dir = QFileInfo(key).absoluteDir(); // Create a QDir from the file path.
+            dir.cdUp(); // Move up from 'bin64'.
+            dir.cdUp(); // Move up from 'LIVE' (or any other folder that 'bin64' was in).
 
-        while (RegEnumValue(hKey, index, valueName, &valueNameSize, NULL, NULL, (LPBYTE)&data, &dataSize) == ERROR_SUCCESS) {
-            QString qValueName = QString::fromWCharArray(valueName);
-            if (qValueName.contains("starcitizen.exe", Qt::CaseInsensitive)) {
-                int bin64Index = qValueName.indexOf("\\bin64\\", 0, Qt::CaseInsensitive);
-                if (bin64Index != -1) {
-                    resultPath = qValueName.left(bin64Index); // Get the path before \bin64 (this will include an environment folder!) 
-                    resultPath = resultPath.left(resultPath.lastIndexOf("\\")); //so we clip that environment off to get the actual SC folder.
-                    break; // Pack it up, we've got a winner.
-                }
-            }
-            valueNameSize = 256;
-            dataSize = 1024;
-            index++;
+            resultPath = dir.absolutePath(); // This is the path we want.
+            break; // Found the desired path, exit the loop.
         }
-
-        RegCloseKey(hKey);
     }
-
-    return resultPath; // return whatever string we found (could be empty too, handled later)
-}
-void copyActionMapsFile()
-{
-	 QDirIterator it(baseDir.path(), QDir::Dirs | QDir::NoDotAndDotDot, QDirIterator::NoIteratorFlags);
-    while (it.hasNext()) {
-        it.next();
-        QString subDirPath = it.filePath();
-
-        QString userFolderPath = subDirPath + QDir::separator() + "USER/Client/0/Profiles/default/actionmaps.xml"; 
-        QDir userFolder(userFolderPath);
-    QString userFolderPath = subDirPath + QDir::separator() + "/actionmaps.xml";
-
-    if (QFile::copy(sourceFilePath, destinationFilePath)) {
-        QMessageBox::information(nullptr, "Copy Successful", "Keybinds copied to the root directory.");
-    } else {
-        QMessageBox::critical(nullptr, "Copy Failed", "Failed to copy Keybinds.");
-    }
-}
-
-
-
-void searchAndDeleteUserFolder()
-{
-    QString scPath = getSCPathString(); //use the fancy reg query to grab a SC path string
 
     //handle some elementary error cases
-    if (scPath.isEmpty()) {
+    if (resultPath.isEmpty()) {
         QMessageBox::warning(nullptr, "Warning", "There is no string. - Abraham Lincoln, 1995");
         return;
     }
 
-    scPath = QDir::cleanPath(scPath) + QDir::separator(); // ensure we tidy up the actual path format if we've gotten this far
+    resultPath = QDir::cleanPath(resultPath) + QDir::separator(); // ensure we tidy up the actual path format if we've gotten this far
 
-    QDir baseDir(scPath);
+    QDir baseDir(resultPath);
     if (!baseDir.exists()) { //Now let's see if the path even exists instead of relying on some rando string.
         QMessageBox::warning(nullptr, "Warning", "The string was a lie, officer.");
         return;
     }
 
-    // So we've verified the directory exists, now let's dig for the USER folders.
-    QDirIterator it(baseDir.path(), QDir::Dirs | QDir::NoDotAndDotDot, QDirIterator::NoIteratorFlags);
-    while (it.hasNext()) {
-        it.next();
-        QString subDirPath = it.filePath();//Dig through each of the environment folders, hands-free!
 
-        QString userFolderPath = subDirPath + QDir::separator() + "USER"; //slap a hypothetical USER on the path...
-        QDir userFolder(userFolderPath);
+    SCDIR = baseDir; // If we made it this far, we have a valid path. Return it.
+ 
+    //QMessageBox::information(nullptr, "Path Found", "The path to Star Citizen is: " + resultPath);
 
-        if (userFolder.exists()) { //and see what that gets us
-            if (!userFolder.removeRecursively()) {
-                QMessageBox::information(nullptr, "That's odd...", "Could not delete USER folder in path: " + userFolderPath); //maybe not even needed. USER could alredy be delet, or some weird permissions...
-                //we don't return here. There may be more USERS amogus. (sus)
-            }
-        }
-    }
-
-    QMessageBox::information(nullptr, "Operation Complete", "All possible USER folders have been deleted.");
+ 
 }
-	void pasteActionMapsFile()
+
+
+
+
+void searchAndDeleteUserFolder(BOOL saveKeybinds)
 {
- QDirIterator it(baseDir.path(), QDir::Dirs | QDir::NoDotAndDotDot, QDirIterator::NoIteratorFlags);
+    QString userSub = "USER";
+    QString actionMapsPath = "USER/Client/0/Profiles/default/";
+    QString actionMapsFile = "actionmaps.xml";
+
+    //full path to USER folder
+    QDir userFolder(SCDIR.filePath(userSub));
+
+
+    QDirIterator it(SCDIR.path(), QDir::Dirs | QDir::NoDotAndDotDot, QDirIterator::NoIteratorFlags);
     while (it.hasNext()) {
         it.next();
         QString subDirPath = it.filePath();
 
-        QString userFolderPath = subDirPath + QDir::separator() + "/actionmaps.xml"; 
-        QDir userFolder(userFolderPath);
-    QString userFolderPath = subDirPath + QDir::separator() + "LIVE/USER/Client/0/Profiles/default/actionmaps.xml";  
+        
+        QDir actionMapsDir(subDirPath + QDir::separator() + actionMapsPath);
+        QDir actionMapsTempDir(subDirPath + QDir::separator());
 
-    if (QFile::copy(sourceFilePath, destinationFilePath)) {
-        QMessageBox::information(nullptr, "Paste Successful", "Keybinds pasted back to its original location.");
-    } else {
-        QMessageBox::critical(nullptr, "Paste Failed", "Do you happen to have any Elmers glue.");
+        //copy the actionMapsFile from the ActionMapsDir to the current subDirPath (if saveKeybinds is checked and xml dir exists)
+        BOOL success = QFile::copy(actionMapsDir.filePath(actionMapsFile), actionMapsTempDir.filePath(actionMapsFile));
+        //BOOL success = true; // Debug
+        if (actionMapsDir.exists() && saveKeybinds) {
+				if (!success) {
+					QMessageBox::information(nullptr, "That's odd...", "Could not copy actionmaps.xml from " + actionMapsDir.filePath(actionMapsFile) + "\n to \n" + actionMapsTempDir.filePath(actionMapsFile));
+				}			
+		}
+        
+        //then commence deleting the user folder
+        QDir userFolder(subDirPath + QDir::separator() + "USER");
+        if (userFolder.exists()) {
+            BOOL success2 = userFolder.removeRecursively(); // <<<------------ This is the delety part
+            //BOOL success2 = true; // Debug with this if no want delet
+            if (!success2) {
+                QMessageBox::information(nullptr, "That's odd...", "Could not delete USER folder in path: " + userFolder.path()); //maybe not even needed. USER could alredy be delet, or some weird permissions...
+            }
+        }
+
+        //if saveKeybinds is checked, move the actionmaps.xml file back to the USER folder
+        if (saveKeybinds) {
+
+            //since the actionMapsDir is now deleted, we need to recreate it (this also creates the USER folder)
+            BOOL success3 = actionMapsTempDir.mkpath(actionMapsPath);
+            //BOOL success3=true; // Debug
+            if (!success3) {
+				QMessageBox::information(nullptr, "Oops", "Could not create directory: " + actionMapsTempDir.path() + QDir::separator() + actionMapsPath);
+			}
+            //then copy the actionmaps.xml file back to the proper location
+            BOOL success4 = QFile::copy(actionMapsTempDir.filePath(actionMapsFile), actionMapsDir.filePath(actionMapsFile));
+            //BOOL success4 = true; // Debug
+            if (!success4) {
+				QMessageBox::information(nullptr, "Oops", "Could not copy actionmaps.xml from " + actionMapsTempDir.filePath(actionMapsFile) + "\n to \n" + actionMapsDir.filePath(actionMapsFile));
+            }
+            else {
+                
+                //QMessageBox::information(nullptr, "Debug", "Debug: 'removed' the temporary actionmaps file"); //debug
+				QFile::remove(actionMapsTempDir.filePath(actionMapsFile)); //we hit this if we DID copy the file back to it's proper place, so we can delete the temp file now.
+			}
+		}
     }
+
+    QString msg = "All possible USER folders have been deleted.";
+    if (saveKeybinds) {
+		msg += "\n and all keybinds have been returned to where they belong.";
+	}
+    QMessageBox::information(nullptr, "Operation Complete", msg);
 }
 
 int main(int argc, char** argv)
@@ -128,11 +137,27 @@ int main(int argc, char** argv)
     QPushButton copyButton("Copy Keybinds to Root Directory");
     QPushButton pasteButton("Paste Keybinds back");
     QPushButton cancelButton("Close");
+    //add a text label
+    
+
+
+    QCheckBox saveKeybinds("Save Keybinds");
+
+
     layout.addWidget(&deleteStarCitizenButton);
-    layout.addWidget(&copyButton);
+    //layout.addWidget(&copyButton);
     layout.addWidget(&deleteUserButton);
-    layout.addWidget(&pasteButton);
+    layout.addWidget(&saveKeybinds);
+    //layout.addWidget(&pasteButton);
     layout.addWidget(&cancelButton);
+    
+    saveKeybinds.setCheckState(Qt::Checked);
+
+
+    setSCDirectory(); //set this automatically on startup, so any other functions can use it.
+
+    QLabel scDirLabel("SC Folder: " + SCDIR.path());
+    layout.addWidget(&scDirLabel);
 
 
     QObject::connect(&deleteStarCitizenButton, &QPushButton::clicked, [&]() {
@@ -145,18 +170,15 @@ int main(int argc, char** argv)
             dir.removeRecursively();
         }
         });
-	QObject::connect(&copyButton, &QPushButton::clicked, copyActionMapsFile);
-	
-    QObject::connect(&pasteButton, &QPushButton::clicked, pasteActionMapsFile);
 
     QObject::connect(&deleteUserButton, &QPushButton::clicked, [&]() {
         QMessageBox::StandardButton reply;
         reply = QMessageBox::question(&window, "Confirmation", "This operation will delete USER folders Please back up your keybindings. Are you sure you want to proceed?",
             QMessageBox::Yes | QMessageBox::No);
         if (reply == QMessageBox::Yes) {
-            searchAndDeleteUserFolder();
+            searchAndDeleteUserFolder(saveKeybinds.isChecked());
         }
-		});
+        });
 
     QObject::connect(&cancelButton, &QPushButton::clicked, [&]() {
         QApplication::quit();
