@@ -7,7 +7,7 @@ The Star Citizen Update Helper is a C++ program designed to assist users in mana
 
     Delete User Folders: This option recursively searches for and deletes "USER" folders within the specified Star Citizen installation directories.
 
-     Backup Keybinds, Settings including keybinds, and stick settings
+    Backup Keybinds, Settings including keybinds, and stick settings
 
 Features
 
