@@ -62,7 +62,7 @@ void searchAndDeleteUserFolder(BOOL saveKeybinds)
 {
     QString userSub = "USER";
     QString actionMapsPath = "USER/Client/0/Profiles/default/";
-    QString actionMapsFile = "actionmaps.xml";
+    QString actionMapsFile = "actionmaps.xml, attributes.xml";
 
     //full path to USER folder
     QDir userFolder(SCDIR.filePath(userSub));
@@ -141,7 +141,7 @@ int main(int argc, char** argv)
     
 
 
-    QCheckBox saveKeybinds("Save Keybinds");
+    QCheckBox saveKeybinds("Save Keybinds & Settings");
 
 
     layout.addWidget(&deleteStarCitizenButton);
