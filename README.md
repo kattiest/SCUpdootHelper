@@ -11,18 +11,18 @@ The Star Citizen Update Helper is a C++ program designed to assist users in mana
 
 Features
 
-    Confirmation Dialogs: The program includes confirmation dialogs to ensure that users want to proceed with potentially irreversible operations.
+    Confirmation Dialogs: The program includes confirmation dialogs to ensure that users want to proceed.
 
     Flexible Search: The program is designed to adapt to different installation locations, including secondary drives.
 
 How to Use
 
-    Delete Star Citizen Folders:
-        Click the "Delete Star Citizen Folders" button.
+    Delete Star Citizen Shader:
+        Click the "Delete Star Citizen Shaders" button.
         Confirm the operation in the pop-up dialog.
 
     Delete User Folders:
-        Click the "Delete USER Folders" button.
+        Click the "Delete SC USER Folders" button.
         Confirm the operation in the pop-up dialog.
     
     Backup Keybinds, Settings
