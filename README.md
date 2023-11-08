@@ -22,7 +22,8 @@ How to Use
     Delete User Folders:
         Click the "Delete USER Folders" button.
         Confirm the operation in the pop-up dialog.
-
+    Backup Keybinds, Settings
+        Keep the checkbox checked to preserve your settings including keybinds, and stick settings
     Close:
         Click the "Close" button or hit the "X" to exit the program.
 
@@ -33,9 +34,9 @@ Prerequisites
 
 How to Compile and Run
 
-    The program is written in C++ and requires a compatible compiler (e.g., GCC, Visual C++ Compiler).
-   
     The EXE is included if you are unable to compile
+    
+    The program is written in C++ and requires a compatible compiler (e.g., GCC, Visual C++ Compiler).
 
     Ensure that the necessary libraries (Qt, Windows SDK) are properly installed.
 
