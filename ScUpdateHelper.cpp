@@ -3,82 +3,139 @@
 #include <QPushButton>
 #include <QVBoxLayout>
 #include <QWidget>
-#include <Windows.h>
 #include <QDir>
 #include <QDirIterator>
+#include <QSettings>
+#include <QCheckBox>
+#include <QFile>
+#include <QLabel>
 
-QString getSCPathString()
+
+
+
+QDir SCDIR;
+
+
+void setSCDirectory()
 {
-    HKEY hKey;
-    LPCWSTR subkey = L"SOFTWARE\\Classes\\Local Settings\\Software\\Microsoft\\Windows\\Shell\\MuiCache";
-    LONG openRes = RegOpenKeyEx(HKEY_CURRENT_USER, subkey, 0, KEY_READ, &hKey);
+    QSettings settings("HKEY_CURRENT_USER\\SOFTWARE\\Classes\\Local Settings\\Software\\Microsoft\\Windows\\Shell\\MuiCache",
+        QSettings::NativeFormat);
 
+    QStringList keys = settings.allKeys();
     QString resultPath;
 
-    if (openRes == ERROR_SUCCESS) {
-        DWORD index = 0;
-        WCHAR valueName[256];
-        DWORD valueNameSize = 256;
-        WCHAR data[1024];
-        DWORD dataSize = 1024;
+    for (const QString& key : keys) {
+        if (key.contains("starcitizen.exe", Qt::CaseInsensitive)) {
+            
+            QString teststr = key;
+            QDir dir = QFileInfo(key).absoluteDir(); // Create a QDir from the file path.
 
-        while (RegEnumValue(hKey, index, valueName, &valueNameSize, NULL, NULL, (LPBYTE)&data, &dataSize) == ERROR_SUCCESS) {
-            QString qValueName = QString::fromWCharArray(valueName);
-            if (qValueName.contains("starcitizen.exe", Qt::CaseInsensitive)) {
-                int bin64Index = qValueName.indexOf("\\bin64\\", 0, Qt::CaseInsensitive);
-                if (bin64Index != -1) {
-                    resultPath = qValueName.left(bin64Index); // Get the path before \bin64 (this will include an environment folder!) 
-                    resultPath = resultPath.left(resultPath.lastIndexOf("\\")); //so we clip that environment off to get the actual SC folder.
-                    break; // Pack it up, we've got a winner.
-                }
+            
+
+            dir.cdUp(); // Move up from 'bin64'.
+            dir.cdUp(); // Move up from the environment folder.
+            if (!dir.exists()) {
+                //found a sc.exe but the path is invalid, so let's look for another...
+                continue;
             }
-            valueNameSize = 256;
-            dataSize = 1024;
-            index++;
-        }
 
-        RegCloseKey(hKey);
+            resultPath = dir.path(); // This is the path we want          
+
+            break; // Found the desired path, exit the loop.
+        }
     }
 
-    return resultPath; // return whatever string we found (could be empty too, handled later)
-}
-
-void searchAndDeleteUserFolder()
-{
-    QString scPath = getSCPathString(); //use the fancy reg query to grab a SC path string
-
     //handle some elementary error cases
-    if (scPath.isEmpty()) {
-        QMessageBox::warning(nullptr, "Warning", "There is no string. - Abraham Lincoln, 1995");
+    if (resultPath.isEmpty()) {
+        QMessageBox::warning(nullptr, "Warning", "There is no string. - Abraham Lincoln, 1995\n"
+        "Couldn't find where Star Citizen is installed. :(");
         return;
     }
 
-    scPath = QDir::cleanPath(scPath) + QDir::separator(); // ensure we tidy up the actual path format if we've gotten this far
+    resultPath = QDir::cleanPath(resultPath) + QDir::separator(); // ensure we tidy up the actual path format if we've gotten this far
 
-    QDir baseDir(scPath);
+    QDir baseDir(resultPath);
     if (!baseDir.exists()) { //Now let's see if the path even exists instead of relying on some rando string.
         QMessageBox::warning(nullptr, "Warning", "The string was a lie, officer.");
         return;
     }
 
-    // So we've verified the directory exists, now let's dig for the USER folders.
-    QDirIterator it(baseDir.path(), QDir::Dirs | QDir::NoDotAndDotDot, QDirIterator::NoIteratorFlags);
-    while (it.hasNext()) {
-        it.next();
-        QString subDirPath = it.filePath();//Dig through each of the environment folders, hands-free!
 
-        QString userFolderPath = subDirPath + QDir::separator() + "USER"; //slap a hypothetical USER on the path...
-        QDir userFolder(userFolderPath);
+    SCDIR = baseDir; // If we made it this far, we have a valid path. Set it for use in other functions!
+}
 
-        if (userFolder.exists()) { //and see what that gets us
-            if (!userFolder.removeRecursively()) {
-                QMessageBox::information(nullptr, "That's odd...", "Could not delete USER folder in path: " + userFolderPath); //maybe not even needed. USER could alredy be delet, or some weird permissions...
-                //we don't return here. There may be more USERS amogus. (sus)
+void searchAndDeleteUserFolder(bool saveKeybinds)
+{
+    QStringList filesToPreserve = {
+        "USER/Client/0/Profiles/default/actionmaps.xml",
+        "USER/Client/0/Profiles/default/attributes.xml"
+        // Possibly more files in the future
+    };
+
+    QDir backupRootDir = SCDIR.filePath("backup"); // < Where we store the backups when applicable. This could be some other safe location.
+    if (!backupRootDir.exists()) {
+        backupRootDir.mkpath(".");
+    }
+
+    QDirIterator it(SCDIR.absolutePath(), QDir::Dirs | QDir::NoDotAndDotDot, QDirIterator::NoIteratorFlags);
+    while (it.hasNext()) {//Walk through each environment folder inside StarCitzien
+        QDir subDir(it.next()); 
+
+        // Create a temporary backup directory for the current environment folder
+        QString backupSubFolderPath = backupRootDir.filePath(subDir.dirName());
+        QDir backupSubFolderDir(backupSubFolderPath); 
+        if (!backupSubFolderDir.exists()) { 
+            backupSubFolderDir.mkpath(".");
+        }
+
+        //// Save specified files ////
+        if (saveKeybinds) {
+            for (const QString& relativeFilePath : filesToPreserve) { //iterate through the list of files to preserve
+                QString fullFilePath = subDir.filePath(relativeFilePath);//get the full path to the file
+                QString backupFilePath = backupSubFolderDir.filePath(QFileInfo(relativeFilePath).fileName());//get the full path to the backup file
+
+                // Check if the file exists and then move it
+                if (QFile::exists(fullFilePath)) {
+                    QFile::copy(fullFilePath, backupFilePath);
+                }
+            }
+        }
+
+        //// Delete the USER folder! ////
+        QDir userFolder(subDir.filePath("USER"));
+        if (userFolder.exists()) {
+            bool success = userFolder.removeRecursively();
+            if (!success) {
+                QMessageBox::information(nullptr, "That's odd...", "Could not delete USER folder in path: " + userFolder.path());
+            }
+        }
+
+        //// Restore the saved files ////
+        if (saveKeybinds) {
+            for (const QString& relativeFilePath : filesToPreserve) {
+                QString backupFilePath = backupSubFolderDir.filePath(QFileInfo(relativeFilePath).fileName());
+                QString restoreFilePath = subDir.filePath(relativeFilePath);
+
+                // Recreate the necessary subdirectories
+                QDir().mkpath(QFileInfo(restoreFilePath).absolutePath());
+
+                // Restore the file
+                if (QFile::exists(backupFilePath)) {
+                    QFile::copy(backupFilePath, restoreFilePath);
+                    QFile::remove(backupFilePath);
+                }
             }
         }
     }
 
-    QMessageBox::information(nullptr, "Operation Complete", "All possible USER folders have been deleted.");
+    // delete the backup directory
+    bool success = backupRootDir.removeRecursively(); //may want to add additional handling for any issues encountere heretofore.
+
+    QString msg = "All possible USER folders have been deleted.";
+    if (saveKeybinds) {
+        msg += "\nAll keybinds have been returned to where they belong.";
+    }
+    QMessageBox::information(nullptr, "Operation Complete", msg);
 }
 
 int main(int argc, char** argv)
@@ -89,10 +146,23 @@ int main(int argc, char** argv)
     QVBoxLayout layout(&window);
     QPushButton deleteStarCitizenButton("Delete Star Citizen Folders");
     QPushButton deleteUserButton("Delete USER Folders");
+
     QPushButton cancelButton("Close");
+
+    QCheckBox saveKeybinds("Save Keybinds and Settings");
+
+
     layout.addWidget(&deleteStarCitizenButton);
     layout.addWidget(&deleteUserButton);
+    layout.addWidget(&saveKeybinds);
     layout.addWidget(&cancelButton);
+
+    saveKeybinds.setCheckState(Qt::Checked);
+
+    setSCDirectory(); //set SCDIR automatically on startup, so any other functions can use it.
+
+    QLabel scDirLabel("SC Folder: " + SCDIR.path());
+    layout.addWidget(&scDirLabel);
 
 
     QObject::connect(&deleteStarCitizenButton, &QPushButton::clicked, [&]() {
@@ -111,9 +181,9 @@ int main(int argc, char** argv)
         reply = QMessageBox::question(&window, "Confirmation", "This operation will delete USER folders Please back up your keybindings. Are you sure you want to proceed?",
             QMessageBox::Yes | QMessageBox::No);
         if (reply == QMessageBox::Yes) {
-            searchAndDeleteUserFolder();
+            searchAndDeleteUserFolder(saveKeybinds.isChecked());
         }
-		});
+        });
 
     QObject::connect(&cancelButton, &QPushButton::clicked, [&]() {
         QApplication::quit();
