@@ -48,6 +48,6 @@ Contributions
 
     Contributions are welcome! If you have suggestions, improvements, or discover any issues, please feel free to open an issue or submit a pull request.
 
-    Thank you Alpine.
+    Thank you for all your help Alpine.
 
 This program is open-source.
